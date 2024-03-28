@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  apache:
+    image: php:latest
+    ports:
+      - "8080:80" 
+    volumes:
+      - ./httpdocs:/var/www/html 
+    networks:
+      - app-network
+
+  mariadb:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_HOST: mariadb
+    ports:
+      - "8181:80"
+    depends_on:
+      - mariadb
+    networks:
+      - app-network
+
+  composer:
+    image: composer:latest
+    volumes:
+      - ./httpdocs:/app
+    command: install
+    depends_on:
+      - apache
+    networks:
+      - app-network
+
+volumes:
+  mariadb_data:
+
+networks:
+  app-network:
+    driver: bridge
