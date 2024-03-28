@@ -1,51 +1,31 @@
-version: '3.8'
+version: '3.3'
 
 services:
-  apache:
-    image: php:latest
-    ports:
-      - "8080:80" 
-    volumes:
-      - ./httpdocs:/var/www/html 
-    networks:
-      - app-network
+   db:
+     image: mariadb:latest
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: exemplo123
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
 
-  mariadb:
-    image: mariadb:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: mydatabase
-      MYSQL_USER: myuser
-      MYSQL_PASSWORD: mypassword
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    networks:
-      - app-network
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    environment:
-      PMA_HOST: mariadb
-    ports:
-      - "8181:80"
-    depends_on:
-      - mariadb
-    networks:
-      - app-network
-
-  composer:
-    image: composer:latest
-    volumes:
-      - ./httpdocs:/app
-    command: install
-    depends_on:
-      - apache
-    networks:
-      - app-network
-
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"
+     restart: always
+     volumes:
+       - ./htdocs:/var/www/html
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+       WORDPRESS_DB_NAME: wordpress
 volumes:
-  mariadb_data:
+    db_data: {}
 
-networks:
-  app-network:
-    driver: bridge
